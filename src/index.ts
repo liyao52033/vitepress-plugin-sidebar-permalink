@@ -2,39 +2,26 @@
 // 统一插件入口，自动生成 rewrites 并生成 sidebar，供 vitepress 使用
 import { Plugin } from 'vitepress'
 import { genRewrites, type RewritesJson } from './rewrites'
-import { genSidebar } from './sidebar'
+import path from 'path'
 
 export interface SidebarPermalinkOptions {
-    root: string;
-    navLinks: { text: string, link: string }[];
-    collapsed?: boolean;
+    root?: string;
     rewritesPath?: string;
 }
 
-export function SidebarPermalinkPlugin(options: SidebarPermalinkOptions): Plugin {
+export function SidebarPermalinkPlugin(options: SidebarPermalinkOptions = {}): Plugin {
+    // root 默认为 'docs'，rewritesPath 默认为 'docs/rewrites.json'
+    const root = options.root ?? 'docs'
+    const rewritesPath = options.rewritesPath ?? path.join('docs', 'rewrites.json')
     let rewrites: RewritesJson = { rewrites: {} }
     return {
         name: 'vitepress-plugin-sidebar-permalink',
-        config(userConfig: any, { command }) {
+        config(_, { command }) {
             if (command === 'build' || command === 'serve') {
-                rewrites = { rewrites: genRewrites({ docsRoot: options.root, output: options.rewritesPath || 'rewrites.json' }) }
-                const sidebar = genSidebar(
-                    options.navLinks,
-                    options.root,
-                    rewrites.rewrites,
-                    { collapsed: options.collapsed === undefined ? true : options.collapsed }
-                )
-                return {
-                    ...userConfig,
-                    themeConfig: {
-                        ...(userConfig.themeConfig || {}),
-                        sidebar
-                    }
-                }
+                rewrites = { rewrites: genRewrites({ docsRoot: root, output: rewritesPath }) }
             }
         }
     }
 }
 
 export * from './rewrites'
-export { genSidebar } from './sidebar'

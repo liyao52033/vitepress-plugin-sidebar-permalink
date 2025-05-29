@@ -5,7 +5,8 @@ VitePress 插件：自动生成 sidebar 侧边栏和 permalink rewrites 映射�
 ## 用法
 
 ```ts [config.mts]
-import { SidebarPermalinkPlugin, genSidebar } from 'vitepress-plugin-sidebar-permalink'
+import { SidebarPermalinkPlugin } from 'vitepress-plugin-sidebar-permalink'
+import { genSidebar } from 'vitepress-plugin-sidebar-permalink/sidebar'
 import rewritesJson from '../rewrites.json'  //插件自动生成
 
 //侧边栏，可抽离出来从其他文件引入
@@ -23,12 +24,7 @@ const sidebar = genSidebar(navLinks, 'docs/articles', rewritesJson.rewrites, sid
 export default defineConfig({
   vite: {
     plugins: [
-      SidebarPermalinkPlugin({
-        root: 'docs/articles',  // md文件所在目录
-        navLinks,               //侧边栏
-        collapsed: true,        
-        rewritesPath: 'docs/rewrites.json'
-      })
+      SidebarPermalinkPlugin()
     ]
   },
   rewrites: rewritesJson.rewrites,
@@ -45,5 +41,4 @@ export default defineConfig({
 - 保持与 VitePress 官方 sidebar 配置行为一致
 - 可直接用于 VitePress config
 
-## License
-MIT
+

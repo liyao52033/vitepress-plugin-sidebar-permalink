@@ -48,6 +48,7 @@ export function generateRewrites({ docsRoot, output }: { docsRoot: string, outpu
         fs.mkdirSync(outputDir, { recursive: true })
     }
     fs.writeFileSync(output, JSON.stringify({ rewrites }, null, 4), 'utf-8')
+    console.log(`[vitepress-plugin-sidebar-permalink]Rewrites generated at ${output}`)
     return rewrites
 }
 
