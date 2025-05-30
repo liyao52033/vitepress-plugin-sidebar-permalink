@@ -3,15 +3,6 @@ import path from 'path'
 import matter from 'gray-matter'
 import picocolors from 'picocolors';
 
-const log = (message: any, type: 'green' | 'yellow' | 'red' = 'green') => {
-    const colorMap = {
-        green: picocolors.green,
-        yellow: picocolors.yellow,
-        red: picocolors.red
-    };
-    const colorFn = colorMap[type] || ((msg: string) => msg);
-    console.log(colorFn(message));
-};
 
 export interface RewritesJson {
     rewrites: Record<string, string>
@@ -54,24 +45,36 @@ export function generateRewrites({ docsRoot, output, ignoreDirs = [] }: { docsRo
         }
         rewrites[relPath] = val
     }
-    // 只在内容变化时写入
+    // 只在参数变化或内容变化时写入
     const outputDir = path.dirname(output)
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true })
     }
     let needWrite = true
+    let oldMeta = ''
+    let oldContent = ''
     if (fs.existsSync(output)) {
         try {
-            const old = fs.readFileSync(output, 'utf-8')
-            if (old === JSON.stringify({ rewrites }, null, 4)) {
-                needWrite = false
+            oldContent = fs.readFileSync(output, 'utf-8')
+            // 读取上次参数元信息
+            const match = oldContent.match(/^\/\*meta:(.*?)\*\//s)
+            if (match) oldMeta = match[1].trim()
+            // 去掉 meta 注释部分
+            oldContent = oldContent.replace(/^\/\*meta:.*?\*\//s, '').trim()
+            if (oldContent === JSON.stringify({ rewrites }, null, 4)) {
+                // 比较参数
+                const newMeta = JSON.stringify({ docsRoot, ignoreDirs })
+                if (oldMeta === newMeta) {
+                    needWrite = false
+                }
             }
         } catch (e) { }
     }
     if (needWrite) {
-        fs.writeFileSync(output, JSON.stringify({ rewrites }, null, 4), 'utf-8')
-        log(`[vitepress-plugin-sidebar-permalink]Rewrites generated at ${output}`)
-    }
+        const meta = `/*meta:${JSON.stringify({ docsRoot, ignoreDirs })}*/\n`;
+        fs.writeFileSync(output, meta + JSON.stringify({ rewrites }, null, 4), 'utf-8')
+        console.log(picocolors.green(`[vitepress-plugin-sidebar-permalink]Rewrites generated at ${output}`))
+    } 
     return rewrites
 }
 

@@ -4,12 +4,36 @@ VitePress 插件：自动生成 sidebar 侧边栏和 permalink rewrites 映射�
 
 ## 用法
 
+### 生成路由重写文件
+
 ```ts [config.mts]
 import { SidebarPermalinkPlugin } from 'vitepress-plugin-sidebar-permalink'
-import { genSidebar } from 'vitepress-plugin-sidebar-permalink/sidebar'
-import rewritesJson from '../rewrites.json'  //插件自动生成，先引入插件生成rewritesJson再写下列代码
 
-//侧边栏，可抽离出来从其他文件引入
+export default defineConfig({
+  vite: {
+    plugins: [
+      SidebarPermalinkPlugin({
+        rewritesPath: docs/rewrites.json，//文件生成位置
+        ignoreDirs: []  //忽略目录
+      }) 
+    ]
+  }
+})
+
+```
+
+- 配置完成后启动项目，默认在docs目录下生成rewites.json文件，可在rewritesPath自定义生成位置
+- 插件默认忽略 '.vitepress', 'node_modules', 'public', "@pages" , "dist" 目录，可在ignoreDirs中配置
+- 必须先生成路由重写文件，然后才能生成侧边栏
+
+### 生成侧边栏
+
+```ts{3,13-14,25,28} [config.mts]
+import { SidebarPermalinkPlugin } from 'vitepress-plugin-sidebar-permalink'
+import { genSidebar } from 'vitepress-plugin-sidebar-permalink/sidebar'
+import rewritesJson from '../rewrites.json'  //插件自动生成，默认在docs目录下，确保文件存在再引入
+
+//导航栏，可抽离出来从其他文件引入
 const navLinks = [
   { text: '组件', link: '/pages/fe4521' },
   { text: '后端', link: '/pages/571de5' },
@@ -23,7 +47,10 @@ const sidebar = genSidebar(navLinks, 'docs/articles', rewritesJson.rewrites, sid
 export default defineConfig({
   vite: {
     plugins: [
-      SidebarPermalinkPlugin() //引入插件
+      SidebarPermalinkPlugin({
+        rewritesPath: docs/rewrites.json，//文件生成位置
+        ignoreDirs: []  //忽略目录
+      }) 
     ]
   },
   rewrites: rewritesJson.rewrites,  // 先引入插件生成rewritesJson再写下列代码
