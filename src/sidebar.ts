@@ -2,9 +2,6 @@ import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
 
-// ESM 环境下获取当前文件目录
-const currentDir = path.dirname(new URL(import.meta.url).pathname)
-
 interface SidebarItem {
     text: string
     link?: string

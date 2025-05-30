@@ -1,5 +1,5 @@
 // vitepress-plugin-sidebar-permalink
-// 统一插件入口，自动生成 rewrites 并生成 sidebar，供 vitepress 使用
+// 统一插件入口，自动生成 rewrites
 import { Plugin } from 'vitepress'
 import { genRewrites, type RewritesJson } from './rewrites'
 import path from 'path'
@@ -23,5 +23,3 @@ export function SidebarPermalinkPlugin(options: SidebarPermalinkOptions = {}): P
         }
     }
 }
-
-export * from './rewrites'
