@@ -6,8 +6,8 @@ VitePress 插件：自动生成 sidebar 侧边栏和 permalink rewrites 映射�
 
 ### 生成路由重写文件
 
-```ts [config.mts]
-import { SidebarPermalinkPlugin } from 'vitepress-plugin-sidebar-permalink'
+```ts 
+import SidebarPermalinkPlugin from 'vitepress-plugin-sidebar-permalink'
 
 export default defineConfig({
   vite: {
@@ -23,13 +23,13 @@ export default defineConfig({
 ```
 
 - 配置完成后启动项目，默认在docs目录下生成rewites.json文件，可在rewritesPath自定义生成位置
-- 插件默认忽略 '.vitepress', 'node_modules', 'public', "@pages" , "dist" 目录，可在ignoreDirs中配置
+- 插件默认忽略 `['.vitepress', 'node_modules', 'public', "dist"]` 目录，可在ignoreDirs中配置
 - 必须先生成路由重写文件，然后才能生成侧边栏
 
 ### 生成侧边栏
 
-```ts{3,13-14,25,28} [config.mts]
-import { SidebarPermalinkPlugin } from 'vitepress-plugin-sidebar-permalink'
+```ts
+import SidebarPermalinkPlugin from 'vitepress-plugin-sidebar-permalink'
 import { genSidebar } from 'vitepress-plugin-sidebar-permalink/sidebar'
 import rewritesJson from '../rewrites.json'  //插件自动生成，默认在docs目录下，确保文件存在再引入
 
@@ -61,6 +61,27 @@ export default defineConfig({
 })
 
 ```
+
+### 修改侧边栏样式
+
+
+``` ts 
+
+import type { Theme } from 'vitepress'
+import DefaultTheme from 'vitepress/theme'
+import 'vitepress-plugin-sidebar-permalink/index.css'
+
+
+export default {
+    extends: DefaultTheme,
+    enhanceApp({ router }) {
+        
+    }
+} satisfies Theme
+
+
+```
+
 
 ## 特性
 - 侧边栏自动生成，支持数字前缀排序、collapsed 配置、permalink 匹配高亮、目录/文件名美化

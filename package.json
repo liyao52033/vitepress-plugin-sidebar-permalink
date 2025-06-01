@@ -1,9 +1,8 @@
 {
     "name": "vitepress-plugin-sidebar-permalink",
-    "version": "1.4.1",
-    "private": false,
-    "description": "VitePress 自动生成 sidebar 和 permalink rewrites 的插件",
     "type": "module",
+    "version": "1.5.3",
+    "description": "VitePress 自动生成 sidebar 和 permalink rewrites 的插件",
     "keywords": [
         "vitepress",
         "sidebar",
@@ -14,7 +13,7 @@
     "homepage": "https://github.com/liyao52033/vitepress-plugin-sidebar-permalink.git",
     "repository": {
         "type": "git",
-        "url": "git@github.com:liyao52033/vitepress-plugin-sidebar-permalink.git"
+        "url": "git+ssh://git@github.com/liyao52033/vitepress-plugin-sidebar-permalink.git"
     },
     "bugs": {
         "url": "https://github.com/liyao52033/vitepress-plugin-sidebar-permalink/issues"
@@ -55,7 +54,7 @@
     },
     "scripts": {
         "build": "unbuild && copy src\\index.css dist\\index.css",
-        "publish": "npm run build && npm publish"
+        "pub": "npm run build && npm publish"
     },
     "dependencies": {
         "gray-matter": "^4.0.3"

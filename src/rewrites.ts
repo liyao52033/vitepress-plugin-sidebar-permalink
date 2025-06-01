@@ -1,8 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
-import picocolors from 'picocolors';
-
+import logger from './log'
 
 export interface RewritesJson {
     rewrites: Record<string, string>
@@ -45,37 +44,44 @@ export function generateRewrites({ docsRoot, output, ignoreDirs = [] }: { docsRo
         }
         rewrites[relPath] = val
     }
-    // 只在参数变化或内容变化时写入
+    // 删除 rewrites.json 中已被 ignoreDirs 忽略的条目
+    const filteredRewrites: Record<string, string> = {}
+    for (const key of Object.keys(rewrites)) {
+        // 检查 key 路径中是否包含被忽略目录
+        const ignore = ignoreDirs.some(dir => key.split('/').includes(dir))
+        if (!ignore) {
+            filteredRewrites[key] = rewrites[key]
+        }
+    }
+    // 只在参数变化或内容变化时写入（不写注释）
     const outputDir = path.dirname(output)
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true })
     }
+
     let needWrite = true
-    let oldMeta = ''
-    let oldContent = ''
     if (fs.existsSync(output)) {
         try {
-            oldContent = fs.readFileSync(output, 'utf-8')
-            // 读取上次参数元信息
-            const match = oldContent.match(/^\/\*meta:(.*?)\*\//s)
-            if (match) oldMeta = match[1].trim()
-            // 去掉 meta 注释部分
-            oldContent = oldContent.replace(/^\/\*meta:.*?\*\//s, '').trim()
-            if (oldContent === JSON.stringify({ rewrites }, null, 4)) {
-                // 比较参数
-                const newMeta = JSON.stringify({ docsRoot, ignoreDirs })
-                if (oldMeta === newMeta) {
-                    needWrite = false
-                }
+            const oldContent = fs.readFileSync(output, 'utf-8')
+            const oldObj = JSON.parse(oldContent)
+            const oldRewrites = oldObj.rewrites || {}
+            // 比较参数和内容
+            const oldKeys = Object.keys(oldRewrites)
+            const newKeys = Object.keys(filteredRewrites)
+            if (
+                JSON.stringify(oldKeys) === JSON.stringify(newKeys) &&
+                JSON.stringify(oldRewrites) === JSON.stringify(filteredRewrites) &&
+                JSON.stringify(oldObj._meta || { docsRoot: '', ignoreDirs: [] }) === JSON.stringify({ docsRoot, ignoreDirs })
+            ) {
+                needWrite = false
             }
         } catch (e) { }
     }
     if (needWrite) {
-        const meta = `/*meta:${JSON.stringify({ docsRoot, ignoreDirs })}*/\n`;
-        fs.writeFileSync(output, meta + JSON.stringify({ rewrites }, null, 4), 'utf-8')
-        console.log(picocolors.green(`[vitepress-plugin-sidebar-permalink]Rewrites generated at ${output}`))
-    } 
-    return rewrites
+        fs.writeFileSync(output, JSON.stringify({ rewrites: filteredRewrites, _meta: { docsRoot, ignoreDirs } }, null, 4), 'utf-8')
+        logger.info(`Rewrites generated at ${output}`)
+    }
+    return filteredRewrites
 }
 
 export const genRewrites = generateRewrites

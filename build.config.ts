@@ -11,5 +11,15 @@ export default defineBuildConfig({
             exports: "named",
         },
     },
-    externals: ["vitepress"],
+    externals: [
+        // 保证依赖不被打包进产物
+        'vite',
+        'vitepress',
+        'rollup',
+        'esbuild',
+        'gray-matter',
+        'picocolors',
+        '@types/node',
+        'typescript'
+    ]
 });

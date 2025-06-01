@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
+import logger from './log'
 
 interface SidebarItem {
     text: string
@@ -66,10 +67,11 @@ export function itemsWithStyle(dir: string, root: string, rewrites: Record<strin
             permalink = permalink.trim()
             if (!permalink.startsWith('/')) permalink = '/' + permalink
             permalink = permalink.replace(/\/$/, '')
-            // 保证 sidebar link 不带 .md 后缀
             permalink = permalink.replace(/\.md$/, '')
         } else {
-            permalink = rewrites[rel + '.md'] || rewrites[rel] || '/' + rel
+            // 只查找带 .md 的 key，保证和 rewrites.json 一致
+            const rewriteKey = rel + '.md'
+            permalink = rewrites[rewriteKey] || '/' + rel
             permalink = permalink.replace(/\.md$/, '')
             if (!permalink.startsWith('/')) permalink = '/' + permalink
         }
@@ -78,17 +80,30 @@ export function itemsWithStyle(dir: string, root: string, rewrites: Record<strin
     return items
 }
 
+function isExternalLink(link?: string): boolean {
+    if (!link) return true;
+    // 绝对外链（http/https）
+    if (/^https?:\/\//i.test(link)) return true;
+    // mailto、tel等协议
+    if (/^(mailto:|tel:)/i.test(link)) return true;
+    // 不是以 /pages 或 / 开头的都视为外链
+    if (!link.startsWith('/pages') && !link.startsWith('/')) return true;
+    return false;
+}
+
 export function genSidebar(
-    navLinks: { text: string, link: string }[],
+    navLinks: { text: string, link?: string, items?: any[] }[],
     root: string,
     rewrites: Record<string, string>,
     options = { collapsed: true }
 ): Record<string, SidebarItem[]> {
     const sidebar: Record<string, SidebarItem[]> = {}
     for (const nav of navLinks) {
-        const navPermalink = nav.link.replace(/^\//, '').replace(/\/$/, '').replace(/\.md$/, '')
+        // 忽略外链和无 link 的分组
+        if (isExternalLink(nav.link)) continue;
+        const navPermalink = nav.link!.replace(/^[\/]/, '').replace(/[\/]$/, '').replace(/\.md$/, '')
         const matchedKeys = Object.entries(rewrites)
-            .filter(([, v]) => v.replace(/^\//, '').replace(/\.md$/, '') === navPermalink)
+            .filter(([, v]) => v.replace(/^[\/]/, '').replace(/\.md$/, '') === navPermalink)
             .map(([k]) => k)
 
         if (matchedKeys.length) {
@@ -111,6 +126,9 @@ export function genSidebar(
                             const file = fs.readFileSync(fullPath, 'utf-8')
                             const { data } = matter(file)
 
+                            // frontmatter.article === false 时跳过
+                            if (data.article === false) continue;
+
                             let permalink = data.permalink || ''
                             if (typeof permalink === 'string' && permalink.trim()) {
                                 permalink = permalink.trim()
@@ -127,6 +145,7 @@ export function genSidebar(
             }
         }
     }
+    logger.info("Injected Sidebar Data Successfully. 注入侧边栏数据成功!");
     return sidebar
 }
 
