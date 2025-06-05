@@ -1,7 +1,7 @@
 {
     "name": "vitepress-plugin-sidebar-permalink",
     "type": "module",
-    "version": "1.5.3",
+    "version": "1.5.6",
     "description": "VitePress 自动生成 sidebar 和 permalink rewrites 的插件",
     "keywords": [
         "vitepress",
@@ -53,7 +53,7 @@
         }
     },
     "scripts": {
-        "build": "unbuild && copy src\\index.css dist\\index.css",
+        "build": "unbuild && tsx src/replace-export.ts && copy src\\index.css dist\\index.css",
         "pub": "npm run build && npm publish"
     },
     "dependencies": {
@@ -62,6 +62,7 @@
     "devDependencies": {
         "@types/node": "^22.15.12",
         "picocolors": "^1.1.1",
+        "tsx": "^4.19.4",
         "typescript": "^5.8.3",
         "unbuild": "^3.2.0",
         "vitepress": "^1.6.3"

@@ -8,8 +8,11 @@ export default defineBuildConfig({
     rollup: {
         emitCJS: true,
         output: {
-            exports: "named",
+            exports: "named", // 让 unbuild/rollup 自动处理 default 导出，保证类型声明一致
         },
+        esbuild: {
+            minify: true,
+          },
     },
     externals: [
         // 保证依赖不被打包进产物
